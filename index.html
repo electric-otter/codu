@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Screen Casting Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+        }
+        button {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        video {
+            margin-top: 20px;
+            max-width: 80%;
+            border: 2px solid #ddd;
+            background-color: black;
+            display: none; /* Hidden by default, shown when stream is active */
+        }
+        #message {
+            margin-top: 20px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <h1>Screen Casting Demo</h1>
+        <button id="startCapture">Start Screen Share</button>
+        <video id="screenVideo" autoplay></video>
+        <p id="message"></p>
+    </div>
+
+    <script>
+        const startCaptureButton = document.getElementById('startCapture');
+        const screenVideo = document.getElementById('screenVideo');
+        const message = document.getElementById('message');
+
+        startCaptureButton.addEventListener('click', async () => {
+            message.textContent = 'Requesting screen sharing permission...';
+            try {
+                // Request access to the user's screen
+                const mediaStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+
+                // If permission is granted, set the stream as the source for the video element
+                screenVideo.srcObject = mediaStream;
+                screenVideo.style.display = 'block'; // Show the video element
+                message.textContent = 'Screen sharing started! You are now sharing your screen.';
+
+                // Optional: Add an event listener to stop sharing if the user stops it from the browser UI
+                mediaStream.getVideoTracks()[0].onended = () => {
+                    message.textContent = 'Screen sharing stopped.';
+                    screenVideo.srcObject = null;
+                    screenVideo.style.display = 'none';
+                };
+
+            } catch (err) {
+                console.error("Error: " + err);
+                if (err.name === "NotAllowedError") {
+                    message.textContent = "Permission to share screen was denied. Please allow screen sharing to proceed.";
+                } else if (err.name === "NotFoundError") {
+                    message.textContent = "No screen or window found to share.";
+                } else {
+                    message.textContent = "An error occurred while trying to share your screen: " + err.message;
+                }
+                screenVideo.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
